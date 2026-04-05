@@ -1,0 +1,153 @@
+.classificacao-container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.classificacao-card {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.league-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.league-table th {
+  padding: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border);
+}
+
+.league-table td {
+  padding: 1rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.league-table tr:last-child td {
+  border-bottom: none;
+}
+
+.league-table tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.league-table .pos {
+  width: 50px;
+  text-align: center;
+}
+
+.pos-badge {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--bg-app);
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.pos-1 { background: #fbbf24; color: #1e1b4b; } /* Gold */
+.pos-2 { background: #94a3b8; color: #1e1b4b; } /* Silver */
+.pos-3 { background: #d97706; color: #ffffff; } /* Bronze */
+
+.team-cell {
+  min-width: 200px;
+}
+
+.team-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.team-logo-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--bg-app);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.team-logo-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-logo-mini span {
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+
+.team-name-text {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pts-col {
+  width: 60px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.pts-col strong {
+  color: var(--primary);
+}
+
+.forma-col {
+  min-width: 120px;
+}
+
+.forma-dots {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.forma-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: white;
+}
+
+.forma-dot.V { background: #10b981; }
+.forma-dot.E { background: #f59e0b; }
+.forma-dot.D { background: #ef4444; }
+
+.sg.positive { color: #10b981; font-weight: 600; }
+.sg.negative { color: #ef4444; font-weight: 600; }
+
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none;
+  }
+}

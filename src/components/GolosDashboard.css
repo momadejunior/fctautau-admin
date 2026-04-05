@@ -1,0 +1,250 @@
+.golos-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dashboard-title-section {
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-title-section h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr 340px;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Stats Section (Left) */
+.stats-cards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card.primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.stat-card.primary .stat-label { color: rgba(255, 255, 255, 0.8); }
+.stat-card.primary .stat-value { color: white; }
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-trend {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.arrow-icon {
+  background: var(--bg-app);
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.stat-card.primary .arrow-icon {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Analytics & Scorers (Center) */
+.top-scorers-widget {
+  min-height: 500px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+}
+
+.scorer-item-row {
+  transition: background 0.2s;
+  padding: 0.75rem 0.5rem;
+  border-radius: 12px;
+}
+
+.scorer-item-row:hover {
+  background: var(--bg-app);
+}
+
+/* Sidebar Widgets (Right) */
+.dashboard-sidebar-widgets {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.next-match-widget {
+  background: var(--primary);
+  color: white;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.next-match-widget::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -20%;
+  width: 150px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+}
+
+.start-btn {
+  padding: 0.875rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.start-btn:hover {
+  transform: scale(1.02);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.action-btn {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  width: 100%;
+}
+
+.action-btn .icon-box {
+  width: 54px;
+  height: 54px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.05);
+}
+
+.action-btn span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.action-btn:hover {
+  transform: translateY(-6px);
+  border-color: #16a34a;
+  box-shadow: 0 12px 24px -8px rgba(22, 163, 74, 0.15);
+  background: white;
+}
+
+.action-btn:hover .icon-box {
+  background: #16a34a;
+  color: white;
+  transform: scale(1.1) rotate(5deg);
+}
+
+.quick-actions-card {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 1400px) {
+  .dashboard-main-grid {
+    grid-template-columns: 320px 1fr;
+  }
+  .dashboard-sidebar-widgets {
+    grid-column: span 2;
+    flex-direction: row;
+  }
+  .next-match-widget, .quick-actions-card {
+    flex: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-sidebar-widgets {
+    grid-column: span 1;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,242 @@
+.resumo-container {
+  padding: 1rem;
+}
+
+.resumo-loading, .resumo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1.5rem;
+  color: var(--text-muted);
+}
+
+.resumo-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.resumo-card {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.resumo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-main);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.main-stats {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.total-games {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.total-games .value {
+  font-size: 4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.total-games .label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.win-rate-bar {
+  margin-top: 1rem;
+}
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.progress-bg {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  border-radius: 4px;
+}
+
+.stats-breakdown {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid transparent;
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.vitorias { border-left-color: #10b981; }
+.vitorias .stat-icon { background: #ecfdf5; color: #10b981; }
+.empates .stat-icon { background: #fefce8; color: #eab308; }
+.derrotas .stat-icon { background: #fef2f2; color: #ef4444; }
+
+.stat-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 2rem;
+}
+
+.stat-trend.upcoming { background: #dcfce7; color: #15803d; }
+
+.analytics-view {
+  grid-column: span 2;
+}
+
+.distribution-list {
+  display: flex;
+  justify-content: space-around;
+  padding: 1rem 0;
+}
+
+.dist-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dist-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.win { background: #10b981; }
+.dot.draw { background: #eab308; }
+.dot.loss { background: #ef4444; }
+
+.dist-val {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.top-scorers-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.scorer-rank-item {
+  transition: background 0.2s;
+}
+
+.scorer-rank-item:hover {
+  background: var(--bg-app);
+}
+
+.history-item {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.history-item:hover {
+  transform: translateX(4px);
+  background: white !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-color: var(--border);
+}
+
+.forma-badge {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.forma-badge:hover {
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .resumo-grid {
+    grid-template-columns: 1fr;
+  }
+  .analytics-view, .recent-activity {
+    grid-column: span 1;
+  }
+}
