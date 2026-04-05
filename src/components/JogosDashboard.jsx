@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Calendar, MapPin, Users, Plus, Loader2, Trophy, Clock, Trash2, Check, X, UserPlus, Timer, Award, Edit2, LayoutGrid, List } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
 import './JogosDashboard.css';
 
 const JogosDashboard = ({ initialView = 'list' }) => {
+  const { showNotification } = useNotification();
   const [jogos, setJogos] = useState([]);
   const [jogadores, setJogadores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
   const [selectedJogoForResult, setSelectedJogoForResult] = useState(null);
   const [resultScore, setResultScore] = useState({ golos_nossos: '', golos_adversario: '' });
   const [scorers, setScorers] = useState([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+  const [selectedPlayers, setSelectedPlayers] = useState([]); // Jogadores que participaram no jogo
   const [savingResult, setSavingResult] = useState(false);
   const [listLayout, setListLayout] = useState('cards'); // 'cards' or 'table'
 
@@ -52,6 +55,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
       setJogos(data || []);
     } catch (error) {
       console.error('Error fetching jogos:', error.message);
+      showNotification('Erro ao carregar jogos: ' + error.message, 'error');
     }
   };
 
@@ -116,11 +120,12 @@ const JogosDashboard = ({ initialView = 'list' }) => {
       setEditingJogo(null);
       setView('list');
       fetchJogos();
+      showNotification('Jogo guardado com sucesso!', 'success');
     } catch (error) {
       if (error.message.includes('row-level security policy')) {
-        alert('Erro de permissão: A política de segurança do Supabase (RLS) está a impedir a operação.');
+        showNotification('Erro de permissão: A política de segurança do Supabase (RLS) está a impedir a operação.', 'error');
       } else {
-        alert('Erro ao guardar jogo: ' + error.message);
+        showNotification('Erro ao guardar jogo: ' + error.message, 'error');
       }
     } finally {
       setUploading(false);
@@ -138,6 +143,9 @@ const JogosDashboard = ({ initialView = 'list' }) => {
       setResultScore({ golos_nossos: '', golos_adversario: '' });
     }
 
+    // Fetch presences
+    fetchPresencas(jogo.id);
+
     if (jogo.golos && jogo.golos.length > 0) {
       setScorers(jogo.golos.map(g => ({
         equipe: g.equipe || 'A',
@@ -147,6 +155,28 @@ const JogosDashboard = ({ initialView = 'list' }) => {
       })));
     } else {
       setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+    }
+  };
+
+  const fetchPresencas = async (jogoId) => {
+    try {
+      const { data, error } = await supabase
+        .from('presenca_jogos')
+        .select('jogador_id')
+        .eq('jogo_id', jogoId);
+      
+      if (error) throw error;
+      setSelectedPlayers(data.map(p => p.jogador_id));
+    } catch (error) {
+      console.error('Erro ao carregar presenças:', error.message);
+    }
+  };
+
+  const togglePlayerPresence = (jogadorId) => {
+    if (selectedPlayers.includes(jogadorId)) {
+      setSelectedPlayers(selectedPlayers.filter(id => id !== jogadorId));
+    } else {
+      setSelectedPlayers([...selectedPlayers, jogadorId]);
     }
   };
 
@@ -177,8 +207,9 @@ const JogosDashboard = ({ initialView = 'list' }) => {
       
       if (error) throw error;
       fetchJogos();
+      showNotification('Jogo eliminado com sucesso!', 'success');
     } catch (error) {
-      alert('Erro ao eliminar jogo: ' + error.message);
+      showNotification('Erro ao eliminar jogo: ' + error.message, 'error');
     }
   };
 
@@ -239,15 +270,29 @@ const JogosDashboard = ({ initialView = 'list' }) => {
           minuto: s.minuto ? parseInt(s.minuto) : null
         }));
         const { error: goalsError } = await supabase.from('golos').insert(goalsData);
-        if (goalsError) console.error('Erro ao salvar golos:', goalsError.message);
+      }
+      
+      // 4. Update player presences
+      // Delete old
+      await supabase.from('presenca_jogos').delete().eq('jogo_id', selectedJogoForResult);
+      
+      // Insert new
+      if (selectedPlayers.length > 0) {
+        const presenceData = selectedPlayers.map(playerId => ({
+          jogo_id: selectedJogoForResult,
+          jogador_id: playerId
+        }));
+        const { error: presenceError } = await supabase.from('presenca_jogos').insert(presenceData);
+        if (presenceError) console.error('Erro ao salvar presenças:', presenceError.message);
       }
 
       setSelectedJogoForResult(null);
       setResultScore({ golos_nossos: '', golos_adversario: '' });
       setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+      setSelectedPlayers([]);
       fetchJogos();
     } catch (error) {
-      alert('Erro ao registar/atualizar resultado: ' + error.message);
+      showNotification('Erro ao registar/atualizar resultado: ' + error.message, 'error');
     } finally {
       setSavingResult(false);
     }
@@ -552,6 +597,56 @@ const JogosDashboard = ({ initialView = 'list' }) => {
                                     min="0"
                                   />
                                 </div>
+                              </div>
+
+                              <div className="squad-selection-section" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(var(--primary-rgb), 0.03)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                <label className="sub-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontWeight: '700' }}>
+                                  <Users size={16} /> Convocatória (Participaram no Jogo)
+                                </label>
+                                <div className="players-presence-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.5rem' }}>
+                                  {jogadores.map(jogador => (
+                                    <div 
+                                      key={jogador.id} 
+                                      onClick={() => togglePlayerPresence(jogador.id)}
+                                      className={`presence-item ${selectedPlayers.includes(jogador.id) ? 'active' : ''}`}
+                                      style={{ 
+                                        padding: '0.5rem', 
+                                        borderRadius: '8px', 
+                                        border: '1px solid',
+                                        borderColor: selectedPlayers.includes(jogador.id) ? 'var(--primary)' : 'var(--border)',
+                                        background: selectedPlayers.includes(jogador.id) ? 'var(--primary-light)' : 'var(--bg-app)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        fontSize: '0.8rem',
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      <div style={{ 
+                                        width: 16, 
+                                        height: 16, 
+                                        borderRadius: '4px', 
+                                        border: '2px solid',
+                                        borderColor: selectedPlayers.includes(jogador.id) ? 'white' : 'var(--border)',
+                                        background: selectedPlayers.includes(jogador.id) ? 'var(--primary)' : 'transparent',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                      }}>
+                                        {selectedPlayers.includes(jogador.id) && <Check size={10} color="white" />}
+                                      </div>
+                                      <span style={{ fontWeight: selectedPlayers.includes(jogador.id) ? '700' : '500', color: selectedPlayers.includes(jogador.id) ? 'var(--primary)' : 'var(--text-main)' }}>
+                                        {jogador.nome}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                                {selectedPlayers.length === 0 && (
+                                  <p style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <X size={12} /> Selecione pelo menos um jogador para registar a participação.
+                                  </p>
+                                )}
                               </div>
 
                               <div className="scorers-section">

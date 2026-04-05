@@ -4,11 +4,13 @@ import {
   Trophy, Users, Calendar, Trash2, PlusCircle, 
   Loader2, ArrowUpRight, Plus, Video, 
   CheckCircle2, Clock, MoreHorizontal, UserPlus,
-  Zap, TrendingUp, BarChart3, MapPin, Award
+  Zap, TrendingUp, BarChart3, MapPin, Award, LayoutGrid
 } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
 import './GolosDashboard.css';
 
 const GolosDashboard = ({ onNavigate }) => {
+  const { showNotification } = useNotification();
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [jogadores, setJogadores] = useState([]);
@@ -104,11 +106,12 @@ const GolosDashboard = ({ onNavigate }) => {
       if (error) throw error;
       setNewGoal({ jogo_id: '', jogador_id: '', quantidade: 1 });
       fetchGoals();
+      showNotification('Golo registado com sucesso!', 'success');
     } catch (error) {
       if (error.message.includes('row-level security policy')) {
-        alert('Erro de permissão: A política de segurança do Supabase (RLS) está a impedir o registo do golo. Por favor, verifique se as políticas RLS foram configuradas corretamente no painel do Supabase.');
+        showNotification('Erro de permissão: A política de segurança do Supabase (RLS) está a impedir o registo do golo.', 'error');
       } else {
-        alert('Erro ao registar golo: ' + error.message);
+        showNotification('Erro ao registar golo: ' + error.message, 'error');
       }
     }
   };
@@ -118,8 +121,9 @@ const GolosDashboard = ({ onNavigate }) => {
       const { error } = await supabase.from('golos').delete().eq('id', id);
       if (error) throw error;
       fetchGoals();
+      showNotification('Golo eliminado com sucesso!', 'success');
     } catch (error) {
-      alert('Error deleting goal: ' + error.message);
+      showNotification('Erro ao eliminar golo: ' + error.message, 'error');
     }
   };
 

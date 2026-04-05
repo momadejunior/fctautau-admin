@@ -9,7 +9,8 @@ import {
   PieChart,
   Loader2,
   ChevronRight,
-  Award
+  Award,
+  Users
 } from 'lucide-react';
 import './ResumoJogos.css';
 
@@ -47,6 +48,13 @@ const ResumoJogos = () => {
 
       if (golosError) throw golosError;
 
+      // 4. Fetch presences for activity ranking
+      const { data: todasPresencas, error: presError } = await supabase
+        .from('presenca_jogos')
+        .select('*, jogadores(nome)');
+
+      if (presError) throw presError;
+
       // Calculate Stats
       const totalJogos = todosResultados.length;
       let vitorias = 0, empates = 0, derrotas = 0;
@@ -73,11 +81,23 @@ const ResumoJogos = () => {
         .slice(0, 3);
 
       // Recent Form (last 5)
-      const formaRecente = todosResultados.slice(0, 5).map(r => {
+      const formaRecente = (todosResultados || []).slice(0, 5).map(r => {
         if (r.golos_nossos > r.golos_adversario) return 'V';
         if (r.golos_nossos === r.golos_adversario) return 'E';
         return 'D';
       });
+
+      // Most Active Players calculation
+      const presenceMap = {};
+      (todasPresencas || []).forEach(p => {
+        if (p.jogadores && p.jogadores.nome) {
+          presenceMap[p.jogadores.nome] = (presenceMap[p.jogadores.nome] || 0) + 1;
+        }
+      });
+      const topActive = Object.entries(presenceMap)
+        .map(([nome, jogos]) => ({ nome, jogos }))
+        .sort((a, b) => b.jogos - a.jogos)
+        .slice(0, 3);
 
       setResumo({
         total_jogos: totalJogos,
@@ -87,6 +107,7 @@ const ResumoJogos = () => {
         golos_pro: golosPró,
         golos_contra: golosContra,
         top_scorers: topScorers,
+        top_active: topActive,
         forma: formaRecente,
         ultimos_jogos: todosResultados.slice(0, 3)
       });
@@ -202,6 +223,25 @@ const ResumoJogos = () => {
                 <span style={{ background: 'var(--primary)', color: 'white', padding: '0.1rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '700' }}>{s.golos} G</span>
               </div>
             )) : <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}>Sem golos registados</div>}
+          </div>
+        </div>
+
+        {/* Most Active Players Card */}
+        <div className="resumo-card top-scorers-view" style={{ borderLeftColor: '#3b82f6' }}>
+          <div className="card-header">
+            <Users size={20} style={{ color: '#3b82f6' }} />
+            <span>Jogadores Mais Ativos</span>
+          </div>
+          <div className="scorers-ranking">
+            {resumo.top_active.length > 0 ? resumo.top_active.map((s, i) => (
+              <div key={i} className="scorer-rank-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <span style={{ fontWeight: '800', color: i === 0 ? '#3b82f6' : 'var(--text-muted)', fontSize: '1.2rem' }}>{i + 1}</span>
+                  <span style={{ fontWeight: '600' }}>{s.nome}</span>
+                </div>
+                <span style={{ background: '#3b82f6', color: 'white', padding: '0.1rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '700' }}>{s.jogos} J</span>
+              </div>
+            )) : <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}>Sem presenças registadas</div>}
           </div>
         </div>
       </div>

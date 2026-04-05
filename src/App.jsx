@@ -11,6 +11,8 @@ import MediaDashboard from './components/MediaDashboard'
 import Login from './components/Login'
 import { NotificationProvider } from './contexts/NotificationContext'
 import NotificationComponent from './components/NotificationComponent'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { Loader2 } from 'lucide-react'
 import './App.css'
 
 function App() {
@@ -37,7 +39,8 @@ function App() {
   }
 
   return (
-    <NotificationProvider>
+    <AuthProvider>
+      <NotificationProvider>
       <div className="app-layout">
         <NotificationComponent />
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -72,7 +75,8 @@ function App() {
         </main>
       </div>
     </NotificationProvider>
-  )
+  </AuthProvider>
+)
 }
 
 export default App

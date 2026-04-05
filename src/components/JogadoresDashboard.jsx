@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Users, Plus, Loader2, User, Trash2, Search, ArrowUpRight, Award, Footprints } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
 import './JogadoresDashboard.css';
 
 const JogadoresDashboard = ({ initialView = 'list' }) => {
+  const { showNotification } = useNotification();
   const [jogadores, setJogadores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(initialView);
   const [searchTerm, setSearchTerm] = useState('');
-  const [stats, setStats] = useState({ total: 0, positions: {} });
+  const [stats, setStats] = useState({ total: 0, positions: {}, mostUsed: '--' });
   const [newJogador, setNewJogador] = useState({
     nome: '',
     numero: '',
@@ -29,7 +31,11 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
       setLoading(true);
       const { data, error } = await supabase
         .from('jogadores')
-        .select('*')
+        .select(`
+          *,
+          presencas:presenca_jogos(count),
+          golos:golos(count)
+        `)
         .order('nome', { ascending: true });
 
       if (error) throw error;
@@ -48,7 +54,24 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
       acc[pos] = (acc[pos] || 0) + 1;
       return acc;
     }, {});
-    setStats({ total: data.length, positions });
+
+    // Find most used player (most appearances)
+    let mostUsedPlayerName = '--';
+    let maxGames = -1;
+    data.forEach(p => {
+      const pData = p.presencas;
+      const games = Array.isArray(pData) ? (pData[0]?.count || 0) : (pData?.count || 0);
+      if (games > maxGames) {
+        maxGames = games;
+        mostUsedPlayerName = p.nome;
+      }
+    });
+
+    setStats({ 
+      total: data.length, 
+      positions,
+      mostUsed: mostUsedPlayerName && maxGames > 0 ? mostUsedPlayerName : '--'
+    });
   };
 
   const handleAddJogador = async (e) => {
@@ -65,11 +88,12 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
 
       if (error) throw error;
 
+      showNotification('Jogador adicionado com sucesso!', 'success');
       setNewJogador({ nome: '', numero: '', posicao: '' });
       setView('list');
       fetchJogadores();
     } catch (error) {
-      alert('Erro ao adicionar jogador: ' + error.message);
+      showNotification('Erro ao adicionar jogador: ' + error.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -80,9 +104,10 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
     try {
       const { error } = await supabase.from('jogadores').delete().eq('id', id);
       if (error) throw error;
+      showNotification('Jogador eliminado com sucesso', 'success');
       fetchJogadores();
     } catch (error) {
-      alert('Erro ao remover jogador: ' + error.message);
+      showNotification('Erro ao eliminar jogador: ' + error.message, 'error');
     }
   };
 
@@ -137,7 +162,9 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
             <span className="stat-label">Mais Utilizado</span>
             <div className="arrow-icon"><Award size={20} color="var(--primary)" /></div>
           </div>
-          <div className="stat-value">--</div>
+          <div className="stat-value" style={{ fontSize: (stats.mostUsed && stats.mostUsed.length > 15) ? '1.2rem' : '1.8rem' }}>
+            {stats.mostUsed}
+          </div>
           <div className="stat-trend up">
             <span>Baseado nos jogos realizados</span>
           </div>
@@ -244,11 +271,11 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
                       <div className="player-card-footer">
                         <div className="player-stat-mini">
                           <span>Jogos</span>
-                          <strong>--</strong>
+                          <strong>{jogador.presencas?.[0]?.count || 0}</strong>
                         </div>
                         <div className="player-stat-mini border-left">
                           <span>Golos</span>
-                          <strong>--</strong>
+                          <strong>{jogador.golos?.[0]?.count || 0}</strong>
                         </div>
                       </div>
                     </div>

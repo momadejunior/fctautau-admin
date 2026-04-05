@@ -12,9 +12,11 @@ import {
   ShieldCheck,
   Edit2
 } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
 import './AdministracaoDashboard.css';
 
 const AdministracaoDashboard = ({ initialView = 'list' }) => {
+  const { showNotification } = useNotification();
   const [membros, setMembros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(initialView);
@@ -87,12 +89,13 @@ const AdministracaoDashboard = ({ initialView = 'list' }) => {
 
       if (error) throw error;
 
+      showNotification('Membro adicionado com sucesso!', 'success');
       setNewMembro({ nome: '', cargo: '', ordem: 0 });
       setFile(null);
       setView('list');
       fetchMembros();
     } catch (error) {
-      alert('Erro ao adicionar membro: ' + error.message);
+      showNotification('Erro ao adicionar membro: ' + error.message, 'error');
     } finally {
       setSaving(false);
     }
@@ -103,9 +106,10 @@ const AdministracaoDashboard = ({ initialView = 'list' }) => {
     try {
       const { error } = await supabase.from('administracao').delete().eq('id', id);
       if (error) throw error;
+      showNotification('Membro removido com sucesso', 'success');
       fetchMembros();
     } catch (error) {
-      alert('Erro ao remover membro: ' + error.message);
+      showNotification('Erro ao eliminar membro: ' + error.message, 'error');
     }
   };
 
