@@ -18,6 +18,151 @@
   margin: 0 auto;
 }
 
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .content-area {
+    padding: 1rem;
+  }
+  
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .stats-cards-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .action-btn {
+    padding: 1rem;
+  }
+  
+  .top-scorers-widget {
+    min-height: auto;
+  }
+  
+  .scorer-item-row {
+    padding: 0.5rem;
+  }
+  
+  .dashboard-title-section h1 {
+    font-size: 1.75rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+  
+  .jogadores-grid-display {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .player-card {
+    padding: 1rem;
+  }
+  
+  .player-name-display {
+    font-size: 1.125rem;
+  }
+  
+  .list-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .search-bar-container {
+    max-width: none;
+  }
+  
+  .search-input {
+    padding: 0.75rem 1rem;
+  }
+  
+  .dashboard-sidebar-widgets {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .next-match-widget, .quick-actions-card {
+    flex: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-area {
+    padding: 0.75rem;
+  }
+  
+  .dashboard-title-section h1 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-cards-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-value {
+    font-size: 1.75rem;
+  }
+  
+  .player-card-header {
+    padding: 1rem;
+  }
+  
+  .player-avatar-large {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+  
+  .player-card-body {
+    padding: 0 1rem 1rem;
+  }
+  
+  .player-card-footer {
+    grid-template-columns: 1fr;
+  }
+  
+  .player-stat-mini {
+    padding: 0.75rem;
+  }
+  
+  .player-stat-mini.border-left {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
 .coming-soon {
   display: flex;
   flex-direction: column;

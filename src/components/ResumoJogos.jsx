@@ -40,10 +40,10 @@ const ResumoJogos = () => {
 
       if (resError) throw resError;
 
-      // 3. Fetch goals to find top scorers
+      // 3. Fetch goals to find top scorers and top assistants
       const { data: todosGolos, error: golosError } = await supabase
         .from('golos')
-        .select('*, jogadores(nome)')
+        .select('*, jogador:jogadores!jogador_id(nome), assistente:jogadores!assistencia_jogador_id(nome)')
         .eq('equipe', 'A'); // Only our team scorers
 
       if (golosError) throw golosError;
@@ -53,14 +53,15 @@ const ResumoJogos = () => {
         .from('presenca_jogos')
         .select('*, jogadores(nome)');
 
-      if (presError) throw presError;
+      // Log error but don't crash if table doesn't exist
+      if (presError) console.warn('Tabela presenca_jogos não encontrada ou erro na query:', presError.message);
 
       // Calculate Stats
-      const totalJogos = todosResultados.length;
+      const totalJogos = (todosResultados || []).length;
       let vitorias = 0, empates = 0, derrotas = 0;
       let golosPró = 0, golosContra = 0;
 
-      todosResultados.forEach(r => {
+      (todosResultados || []).forEach(r => {
         golosPró += r.golos_nossos || 0;
         golosContra += r.golos_adversario || 0;
         if (r.golos_nossos > r.golos_adversario) vitorias++;
@@ -68,16 +69,24 @@ const ResumoJogos = () => {
         else derrotas++;
       });
 
-      // Top Scorers calculation
+      // Top Scorers and Assists calculation
       const scorersMap = {};
-      todosGolos.forEach(g => {
-        if (g.jogadores && g.jogadores.nome) {
-          scorersMap[g.jogadores.nome] = (scorersMap[g.jogadores.nome] || 0) + 1;
+      const assistsMap = {};
+      (todosGolos || []).forEach(g => {
+        if (g.jogador && g.jogador.nome) {
+          scorersMap[g.jogador.nome] = (scorersMap[g.jogador.nome] || 0) + (g.quantidade || 1);
+        }
+        if (g.assistente && g.assistente.nome) {
+          assistsMap[g.assistente.nome] = (assistsMap[g.assistente.nome] || 0) + 1;
         }
       });
       const topScorers = Object.entries(scorersMap)
         .map(([nome, golos]) => ({ nome, golos }))
         .sort((a, b) => b.golos - a.golos)
+        .slice(0, 3);
+      const topAssists = Object.entries(assistsMap)
+        .map(([nome, assists]) => ({ nome, assists }))
+        .sort((a, b) => b.assists - a.assists)
         .slice(0, 3);
 
       // Recent Form (last 5)
@@ -107,9 +116,10 @@ const ResumoJogos = () => {
         golos_pro: golosPró,
         golos_contra: golosContra,
         top_scorers: topScorers,
+        top_assists: topAssists,
         top_active: topActive,
         forma: formaRecente,
-        ultimos_jogos: todosResultados.slice(0, 3)
+        ultimos_jogos: (todosResultados || []).slice(0, 3)
       });
 
     } catch (error) {
@@ -242,6 +252,25 @@ const ResumoJogos = () => {
                 <span style={{ background: '#3b82f6', color: 'white', padding: '0.1rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '700' }}>{s.jogos} J</span>
               </div>
             )) : <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}>Sem presenças registadas</div>}
+          </div>
+        </div>
+
+        {/* Top Assists Card */}
+        <div className="resumo-card top-scorers-view" style={{ borderLeftColor: '#10b981' }}>
+          <div className="card-header">
+            <Users size={20} style={{ color: '#10b981' }} />
+            <span>Reis das Assistências</span>
+          </div>
+          <div className="scorers-ranking">
+            {resumo.top_assists.length > 0 ? resumo.top_assists.map((s, i) => (
+              <div key={i} className="scorer-rank-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <span style={{ fontWeight: '800', color: i === 0 ? '#10b981' : 'var(--text-muted)', fontSize: '1.2rem' }}>{i + 1}</span>
+                  <span style={{ fontWeight: '600' }}>{s.nome}</span>
+                </div>
+                <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '0.1rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '800' }}>{s.assists} A</span>
+              </div>
+            )) : <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}>Sem assistências registadas</div>}
           </div>
         </div>
       </div>

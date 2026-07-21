@@ -78,7 +78,8 @@ const GolosDashboard = ({ onNavigate }) => {
         .from('golos')
         .select(`
           *,
-          jogadores(nome),
+          jogador:jogadores!jogador_id(nome),
+          assistente:jogadores!assistencia_jogador_id(nome),
           jogos(data, local, equipe_a, equipe_b)
         `)
         .order('created_at', { ascending: false });
@@ -138,8 +139,24 @@ const GolosDashboard = ({ onNavigate }) => {
           <div style={{ display: 'flex', gap: '1rem' }}>
             {/* Quick stats badges */}
             <div className="badge-group" style={{ display: 'flex', gap: '0.5rem' }}>
-               <div className="badge primary" style={{ background: 'var(--primary)', color: 'white', border: 'none' }}>
-                 Temporada 2024
+               <div 
+                 style={{ 
+                   background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)', 
+                   color: 'white', 
+                   border: 'none', 
+                   padding: '0.5rem 1rem', 
+                   borderRadius: '20px', 
+                   display: 'flex', 
+                   alignItems: 'center', 
+                   gap: '0.5rem', 
+                   fontSize: '0.85rem', 
+                   fontWeight: '800', 
+                   boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35)',
+                   textTransform: 'uppercase',
+                   letterSpacing: '0.5px'
+                 }}
+               >
+                 <Award size={16} style={{ color: '#fcd34d' }} /> Temporada {new Date().getFullYear()}
                </div>
             </div>
           </div>
@@ -187,31 +204,61 @@ const GolosDashboard = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Center: Top Scorers Table */}
-        <div className="card analytics-card top-scorers-widget">
-          <div className="section-title" style={{ justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Award size={18} /> Top 5 Marcadores</span>
-            <TrendingUp size={18} className="text-muted" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, minWidth: '300px' }}>
+          {/* Center: Top Scorers Table */}
+          <div className="card analytics-card top-scorers-widget" style={{ flex: 1 }}>
+            <div className="section-title" style={{ justifyContent: 'space-between' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Award size={18} /> Top 5 Marcadores</span>
+              <TrendingUp size={18} className="text-muted" />
+            </div>
+            <div className="scorers-list-compact" style={{ marginTop: '1rem' }}>
+              {goals.length > 0 ? (
+                 // Group and count
+                 Object.entries(goals.reduce((acc, g) => {
+                   if (g.equipe === 'A' && g.jogador?.nome) {
+                     acc[g.jogador.nome] = (acc[g.jogador.nome] || 0) + (g.quantidade || 1);
+                   }
+                   return acc;
+                 }, {})).sort((a,b) => b[1] - a[1]).slice(0, 5).map(([nome, score], i) => (
+                   <div key={nome} className="scorer-item-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ width: '20px', fontWeight: '800', color: i === 0 ? 'var(--primary)' : 'var(--text-muted)' }}>{i+1}</span>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>{nome[0]}</div>
+                        <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{nome}</span>
+                      </div>
+                      <span style={{ background: 'var(--secondary)', color: 'var(--primary)', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800' }}>{score} Golos</span>
+                   </div>
+                 ))
+              ) : <p style={{ textAlign: 'center', padding: '2rem', opacity: 0.5 }}>Sem dados de marcadores.</p>}
+            </div>
           </div>
-          <div className="scorers-list-compact" style={{ marginTop: '1rem' }}>
-            {goals.length > 0 ? (
-               // Group and count
-               Object.entries(goals.reduce((acc, g) => {
-                 if (g.equipe === 'A' && g.jogadores?.nome) {
-                   acc[g.jogadores.nome] = (acc[g.jogadores.nome] || 0) + (g.quantidade || 1);
-                 }
-                 return acc;
-               }, {})).sort((a,b) => b[1] - a[1]).slice(0, 5).map(([nome, score], i) => (
-                 <div key={nome} className="scorer-item-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ width: '20px', fontWeight: '800', color: i === 0 ? 'var(--primary)' : 'var(--text-muted)' }}>{i+1}</span>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>{nome[0]}</div>
-                      <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{nome}</span>
-                    </div>
-                    <span style={{ background: 'var(--secondary)', color: 'var(--primary)', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800' }}>{score} Golos</span>
-                 </div>
-               ))
-            ) : <p style={{ textAlign: 'center', padding: '2rem', opacity: 0.5 }}>Sem dados de marcadores.</p>}
+
+          {/* Top Assists Table */}
+          <div className="card analytics-card top-assists-widget" style={{ flex: 1 }}>
+            <div className="section-title" style={{ justifyContent: 'space-between' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} /> Top 5 Assistências</span>
+              <TrendingUp size={18} className="text-muted" />
+            </div>
+            <div className="scorers-list-compact" style={{ marginTop: '1rem' }}>
+              {goals.length > 0 ? (
+                 // Group and count assists
+                 Object.entries(goals.reduce((acc, g) => {
+                   if (g.equipe === 'A' && g.assistente?.nome) {
+                     acc[g.assistente.nome] = (acc[g.assistente.nome] || 0) + 1;
+                   }
+                   return acc;
+                 }, {})).sort((a,b) => b[1] - a[1]).slice(0, 5).map(([nome, score], i) => (
+                   <div key={nome} className="scorer-item-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ width: '20px', fontWeight: '800', color: i === 0 ? 'var(--primary)' : 'var(--text-muted)' }}>{i+1}</span>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: '700' }}>{nome[0]}</div>
+                        <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{nome}</span>
+                      </div>
+                      <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800' }}>{score} Assis.</span>
+                   </div>
+                 ))
+              ) : <p style={{ textAlign: 'center', padding: '2rem', opacity: 0.5 }}>Sem dados de assistências.</p>}
+            </div>
           </div>
         </div>
 

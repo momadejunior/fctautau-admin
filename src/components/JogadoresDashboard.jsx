@@ -58,7 +58,7 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
     // Find most used player (most appearances)
     let mostUsedPlayerName = '--';
     let maxGames = -1;
-    data.forEach(p => {
+    (data || []).forEach(p => {
       const pData = p.presencas;
       const games = Array.isArray(pData) ? (pData[0]?.count || 0) : (pData?.count || 0);
       if (games > maxGames) {
@@ -68,7 +68,7 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
     });
 
     setStats({ 
-      total: data.length, 
+      total: (data || []).length, 
       positions,
       mostUsed: mostUsedPlayerName && maxGames > 0 ? mostUsedPlayerName : '--'
     });
@@ -125,18 +125,16 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
             <h1>Gestão de Plantel</h1>
             <p>Gerencie os jogadores, posições e números da equipa.</p>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="toggle-group" style={{ display: 'flex', background: 'var(--bg-card)', padding: '0.35rem', borderRadius: '12px', border: '1px solid var(--border)', gap: '0.25rem' }}>
             <button 
               onClick={() => setView('list')} 
-              className={`submit-btn ${view === 'list' ? '' : 'outline'}`}
-              style={{ background: view === 'list' ? 'var(--primary)' : 'transparent', color: view === 'list' ? 'white' : 'var(--primary)', borderColor: 'var(--primary)' }}
+              style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: 'none', background: view === 'list' ? 'var(--primary)' : 'transparent', color: view === 'list' ? 'white' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.2s' }}
             >
               <Users size={18} /> Ver Plantel
             </button>
             <button 
               onClick={() => setView('add')} 
-              className={`submit-btn ${view === 'add' ? '' : 'outline'}`}
-              style={{ background: view === 'add' ? 'var(--primary)' : 'transparent', color: view === 'add' ? 'white' : 'var(--primary)', borderColor: 'var(--primary)' }}
+              style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: 'none', background: view === 'add' ? 'var(--primary)' : 'transparent', color: view === 'add' ? 'white' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.2s' }}
             >
               <Plus size={18} /> Novo Jogador
             </button>

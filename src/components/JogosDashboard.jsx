@@ -25,7 +25,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
   const [uploading, setUploading] = useState(false);
   const [selectedJogoForResult, setSelectedJogoForResult] = useState(null);
   const [resultScore, setResultScore] = useState({ golos_nossos: '', golos_adversario: '' });
-  const [scorers, setScorers] = useState([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+  const [scorers, setScorers] = useState([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '', assistencia_jogador_id: '' }]);
   const [selectedPlayers, setSelectedPlayers] = useState([]); // Jogadores que participaram no jogo
   const [savingResult, setSavingResult] = useState(false);
   const [listLayout, setListLayout] = useState('cards'); // 'cards' or 'table'
@@ -48,7 +48,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
     try {
       const { data, error } = await supabase
         .from('jogos')
-        .select('*, resultados(*), golos(*, jogadores(nome))')
+        .select('*, resultados(*), golos(*, jogadores!jogador_id(nome), assistente:jogadores!assistencia_jogador_id(nome))')
         .order('data', { ascending: false });
 
       if (error) throw error;
@@ -151,10 +151,11 @@ const JogosDashboard = ({ initialView = 'list' }) => {
         equipe: g.equipe || 'A',
         jogador_id: g.jogador_id || '',
         nome_adversario: g.nome_marcador_adversario || '',
-        minuto: g.minuto ? g.minuto.toString() : ''
+        minuto: g.minuto ? g.minuto.toString() : '',
+        assistencia_jogador_id: g.assistencia_jogador_id || ''
       })));
     } else {
-      setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+      setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '', assistencia_jogador_id: '' }]);
     }
   };
 
@@ -214,7 +215,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
   };
 
   const handleAddScorer = () => {
-    setScorers([...scorers, { equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+    setScorers([...scorers, { equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '', assistencia_jogador_id: '' }]);
   };
 
   const handleScorerChange = (index, field, value) => {
@@ -267,7 +268,8 @@ const JogosDashboard = ({ initialView = 'list' }) => {
           nome_marcador_adversario: s.equipe === 'B' ? s.nome_adversario : null,
           equipe: s.equipe,
           quantidade: 1,
-          minuto: s.minuto ? parseInt(s.minuto) : null
+          minuto: s.minuto ? parseInt(s.minuto) : null,
+          assistencia_jogador_id: s.equipe === 'A' && s.assistencia_jogador_id ? s.assistencia_jogador_id : null
         }));
         const { error: goalsError } = await supabase.from('golos').insert(goalsData);
       }
@@ -288,7 +290,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
 
       setSelectedJogoForResult(null);
       setResultScore({ golos_nossos: '', golos_adversario: '' });
-      setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+      setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '', assistencia_jogador_id: '' }]);
       setSelectedPlayers([]);
       fetchJogos();
     } catch (error) {
@@ -306,18 +308,16 @@ const JogosDashboard = ({ initialView = 'list' }) => {
             <h1>{view === 'add' ? (editingJogo ? 'Editar Partida' : 'Agendar Nova Partida') : 'Próximos Jogos'}</h1>
             <p>{view === 'add' ? 'Preencha os detalhes para atualizar ou marcar um novo confronto.' : 'Acompanhe e gira o calendário de jogos da equipa.'}</p>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="toggle-group" style={{ display: 'flex', background: 'var(--bg-card)', padding: '0.35rem', borderRadius: '12px', border: '1px solid var(--border)', gap: '0.25rem' }}>
             <button 
               onClick={() => { setView('list'); setEditingJogo(null); }} 
-              className={`submit-btn ${view === 'list' ? '' : 'outline'}`}
-              style={{ background: view === 'list' ? 'var(--primary)' : 'transparent', color: view === 'list' ? 'white' : 'var(--primary)', borderColor: 'var(--primary)' }}
+              style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: 'none', background: view === 'list' ? 'var(--primary)' : 'transparent', color: view === 'list' ? 'white' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.2s' }}
             >
               <Trophy size={18} /> Ver Todos
             </button>
             <button 
               onClick={() => { setView('add'); setEditingJogo(null); setNewJogo({ data: '', hora: '', equipe_a: '', equipe_b: '', campo: '', local: '', logo_a: '', logo_b: '' }); }} 
-              className={`submit-btn ${view === 'add' ? '' : 'outline'}`}
-              style={{ background: view === 'add' ? 'var(--primary)' : 'transparent', color: view === 'add' ? 'white' : 'var(--primary)', borderColor: 'var(--primary)' }}
+              style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: 'none', background: view === 'add' ? 'var(--primary)' : 'transparent', color: view === 'add' ? 'white' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.2s' }}
             >
               <Plus size={18} /> Novo Jogo
             </button>
@@ -553,7 +553,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
                                 {jogo.golos.filter(g => g.equipe === 'A').length > 0 ? (
                                   jogo.golos.filter(g => g.equipe === 'A').map((g, idx) => (
                                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                      <Award size={12} /> {g.jogadores?.nome} {g.minuto && <span style={{ opacity: 0.6 }}>({g.minuto}')</span>}
+                                      <Award size={12} /> {g.jogador?.nome || g.jogadores?.nome} {g.assistente?.nome && <span style={{fontSize: '0.7rem', color: 'var(--primary)', opacity: 0.8}}>(A: {g.assistente.nome})</span>} {g.minuto && <span style={{ opacity: 0.6 }}>({g.minuto}')</span>}
                                     </div>
                                   ))
                                 ) : <span style={{ opacity: 0.4 }}>-</span>}
@@ -665,17 +665,30 @@ const JogosDashboard = ({ initialView = 'list' }) => {
                                       </select>
 
                                       {scorer.equipe === 'A' ? (
-                                        <select 
-                                          value={scorer.jogador_id} 
-                                          onChange={(e) => handleScorerChange(index, 'jogador_id', e.target.value)}
-                                          className="scorer-select"
-                                          style={{ flex: 1 }}
-                                        >
-                                          <option value="">Escolha o jogador...</option>
-                                          {jogadores.map(j => (
-                                            <option key={j.id} value={j.id}>{j.nome}</option>
-                                          ))}
-                                        </select>
+                                        <>
+                                          <select 
+                                            value={scorer.jogador_id} 
+                                            onChange={(e) => handleScorerChange(index, 'jogador_id', e.target.value)}
+                                            className="scorer-select"
+                                            style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border)' }}
+                                          >
+                                            <option value="">Marcador...</option>
+                                            {jogadores.map(j => (
+                                              <option key={j.id} value={j.id}>{j.nome}</option>
+                                            ))}
+                                          </select>
+                                          <select 
+                                            value={scorer.assistencia_jogador_id || ''} 
+                                            onChange={(e) => handleScorerChange(index, 'assistencia_jogador_id', e.target.value)}
+                                            className="assist-select"
+                                            style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border)' }}
+                                          >
+                                            <option value="">Assistência...</option>
+                                            {jogadores.map(j => (
+                                              <option key={j.id} value={j.id}>{j.nome}</option>
+                                            ))}
+                                          </select>
+                                        </>
                                       ) : (
                                         <input 
                                           type="text" 
@@ -703,7 +716,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
                                         type="button" 
                                         onClick={() => {
                                           const updated = scorers.filter((_, i) => i !== index);
-                                          setScorers(updated.length ? updated : [{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);
+                                          setScorers(updated.length ? updated : [{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '', assistencia_jogador_id: '' }]);
                                         }}
                                         className="delete-btn-mini"
                                         style={{ padding: '0.25rem', color: '#ef4444' }}
@@ -722,7 +735,7 @@ const JogosDashboard = ({ initialView = 'list' }) => {
                                 <button type="submit" className="save-btn" disabled={savingResult}>
                                   {savingResult ? <Loader2 className="animate-spin" size={16} /> : 'Guardar Resultado'}
                                 </button>
-                                <button type="button" onClick={() => {setSelectedJogoForResult(null); setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '' }]);}} className="cancel-btn">
+                                <button type="button" onClick={() => {setSelectedJogoForResult(null); setScorers([{ equipe: 'A', jogador_id: '', nome_adversario: '', minuto: '', assistencia_jogador_id: '' }]);}} className="cancel-btn">
                                   Cancelar
                                 </button>
                               </div>
