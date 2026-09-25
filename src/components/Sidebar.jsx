@@ -5,22 +5,22 @@ import './Sidebar.css';
 
 const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
   const { signOut } = useAuth();
-  
+
   const menuItems = [
     { id: 'golos', icon: LayoutDashboard, label: 'Dashboard' },
-    { 
-      id: 'jogadores', 
-      icon: Users, 
-      label: 'Jogadores', 
-      badge: '12+',
+    {
+      id: 'jogadores',
+      icon: Users,
+      label: 'Jogadores',
+      badge: '',
       subItems: [
         { id: 'jogadores-list', label: 'Ver todos', view: 'list' },
         { id: 'jogadores-add', label: 'Adicionar novo', view: 'add' }
       ]
     },
-    { 
-      id: 'jogos', 
-      icon: Calendar, 
+    {
+      id: 'jogos',
+      icon: Calendar,
       label: 'Jogos',
       subItems: [
         { id: 'jogos-proximos', label: 'Próximos Jogos' },
@@ -44,8 +44,8 @@ const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
       <div className="sidebar-brand">
         <div className="brand-logo">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4ZM16 24C11.5817 24 8 20.4183 8 16C8 11.5817 11.5817 8 16 8C20.4183 8 24 11.5817 24 16C24 20.4183 20.4183 24 16 24Z" fill="currentColor"/>
-            <circle cx="16" cy="16" r="4" fill="currentColor"/>
+            <path d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4ZM16 24C11.5817 24 8 20.4183 8 16C8 11.5817 11.5817 8 16 8C20.4183 8 24 11.5817 24 16C24 20.4183 20.4183 24 16 24Z" fill="currentColor" />
+            <circle cx="16" cy="16" r="4" fill="currentColor" />
           </svg>
         </div>
         <span className="brand-name">fctautau</span>
@@ -67,19 +67,19 @@ const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
               <span className="nav-text">{item.label}</span>
               {item.badge && <span className="nav-badge">{item.badge}</span>}
               {item.subItems && (
-                <ChevronRight 
-                  size={16} 
-                  className={`chevron ${activeTab.startsWith(item.id) ? 'rotate' : ''}`} 
+                <ChevronRight
+                  size={16}
+                  className={`chevron ${activeTab.startsWith(item.id) ? 'rotate' : ''}`}
                   style={{ marginLeft: 'auto', transition: 'transform 0.2s', transform: activeTab.startsWith(item.id) ? 'rotate(90deg)' : 'none' }}
                 />
               )}
             </div>
-            
+
             {item.subItems && activeTab.startsWith(item.id) && (
               <div className="sub-nav">
                 {item.subItems.map(sub => (
-                  <div 
-                    key={sub.id} 
+                  <div
+                    key={sub.id}
                     className={`sub-nav-item ${activeTab === sub.id ? 'active' : ''}`}
                     onClick={() => setActiveTab(sub.id)}
                   >
@@ -104,7 +104,7 @@ const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
 
       <div className="sidebar-footer" style={{ borderTop: '1px solid var(--border)', padding: '1.5rem', marginTop: 'auto' }}>
         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-          fctautau Dashboard v1.0<br/>Estádio Virtual © 2024
+          fctautau Dashboard v1.0<br />Estádio Virtual © 2024
         </div>
       </div>
     </aside>
