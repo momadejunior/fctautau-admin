@@ -8,6 +8,7 @@ import ResumoJogos from './components/ResumoJogos'
 import Classificacao from './components/Classificacao'
 import AdministracaoDashboard from './components/AdministracaoDashboard'
 import MediaDashboard from './components/MediaDashboard'
+import SettingsDashboard from './components/SettingsDashboard'
 import Login from './components/Login'
 import NotificationComponent from './components/NotificationComponent'
 import { useAuth } from './contexts/AuthContext'
@@ -56,7 +57,8 @@ function App() {
           {activeTab === 'classificacao' && <Classificacao />}
           {activeTab === 'administracao' && <AdministracaoDashboard />}
           {activeTab === 'media' && <MediaDashboard />}
-          {!['golos', 'jogos', 'jogos-proximos', 'jogos-agendar', 'resumo', 'jogadores-list', 'jogadores-add', 'classificacao', 'administracao', 'media'].includes(activeTab) && (
+          {(activeTab === 'settings' || activeTab === 'help') && <SettingsDashboard />}
+          {!['golos', 'jogos', 'jogos-proximos', 'jogos-agendar', 'resumo', 'jogadores-list', 'jogadores-add', 'classificacao', 'administracao', 'media', 'settings', 'help'].includes(activeTab) && (
             <div className="empty-view"></div>
           )}
         </div>

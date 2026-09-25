@@ -10,7 +10,9 @@ import {
   Loader2,
   ChevronRight,
   Award,
-  Users
+  Users,
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import './ResumoJogos.css';
 
@@ -72,7 +74,10 @@ const ResumoJogos = () => {
       // Top Scorers and Assists calculation
       const scorersMap = {};
       const assistsMap = {};
+      let totalGolosIndividuais = 0;
+
       (todosGolos || []).forEach(g => {
+        totalGolosIndividuais += (g.quantidade || 1);
         if (g.jogador && g.jogador.nome) {
           scorersMap[g.jogador.nome] = (scorersMap[g.jogador.nome] || 0) + (g.quantidade || 1);
         }
@@ -115,6 +120,7 @@ const ResumoJogos = () => {
         derrotas,
         golos_pro: golosPró,
         golos_contra: golosContra,
+        total_golos_individuais: totalGolosIndividuais,
         top_scorers: topScorers,
         top_assists: topAssists,
         top_active: topActive,
@@ -127,6 +133,45 @@ const ResumoJogos = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const downloadExcel = () => {
+    if (!resumo) return;
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    
+    csvContent += "=== ESTATÍSTICAS GERAIS ===\n";
+    csvContent += "Jogos Realizados,Vitorias,Empates,Derrotas,Golos Marcados,Golos Sofridos\n";
+    csvContent += `${resumo.total_jogos},${resumo.vitorias},${resumo.empates},${resumo.derrotas},${resumo.golos_pro},${resumo.golos_contra}\n\n`;
+
+    csvContent += "=== MELHORES MARCADORES ===\n";
+    csvContent += "Nome,Golos\n";
+    resumo.top_scorers.forEach(s => csvContent += `${s.nome},${s.golos}\n`);
+    csvContent += "\n";
+
+    csvContent += "=== MAIORES ASSISTENCIAS ===\n";
+    csvContent += "Nome,Assistencias\n";
+    resumo.top_assists.forEach(s => csvContent += `${s.nome},${s.assists}\n`);
+    csvContent += "\n";
+
+    csvContent += "=== MAIS ATIVOS ===\n";
+    csvContent += "Nome,Jogos\n";
+    resumo.top_active.forEach(s => csvContent += `${s.nome},${s.jogos}\n`);
+    csvContent += "\n";
+
+    csvContent += "=== ULTIMOS JOGOS ===\n";
+    csvContent += "Data,Resultado,Adversario\n";
+    resumo.ultimos_jogos.forEach(j => {
+        csvContent += `${new Date(j.jogos.data).toLocaleDateString('pt-PT')},${j.golos_nossos} - ${j.golos_adversario},${j.jogos.equipe_b}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Estatisticas_FCTAUTAU_${new Date().toLocaleDateString('pt-PT').replace(/\//g, '-')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
@@ -151,10 +196,34 @@ const ResumoJogos = () => {
 
   return (
     <div className="resumo-container">
-      <div className="dashboard-title-section">
-        <h1>Resumo de Jogos</h1>
-        <p>Visão geral de desempenho e estatísticas da equipa.</p>
+      <div className="dashboard-title-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1>Resumo de Jogos</h1>
+          <p>Visão geral de desempenho e estatísticas da equipa.</p>
+        </div>
+        <button 
+          onClick={downloadExcel}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#107c41', color: 'white', padding: '0.6rem 1rem', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#0c5c30'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#107c41'}
+        >
+          <Download size={18} />
+          Exportar Excel (CSV)
+        </button>
       </div>
+
+      {resumo.golos_pro !== resumo.total_golos_individuais && (
+        <div style={{ background: '#fffbeb', border: '1px solid #f59e0b', color: '#b45309', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+          <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <h4 style={{ margin: '0 0 0.25rem', fontSize: '0.95rem' }}>Discrepância nos Golos</h4>
+            <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.4' }}>
+              A equipa tem um total de <strong>{resumo.golos_pro}</strong> golos registados nos resultados finais, mas só existem <strong>{resumo.total_golos_individuais}</strong> golos atribuídos a jogadores na base de dados. 
+              Falta registar <strong>{resumo.golos_pro - resumo.total_golos_individuais}</strong> golos nos detalhes dos jogos (ou são auto-golos).
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="resumo-grid">
         {/* Main Stats Card */}
@@ -191,12 +260,28 @@ const ResumoJogos = () => {
         </div>
 
         {/* Breakdown Cards */}
-        <div className="stats-breakdown">
+        <div className="stats-breakdown" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem', width: '100%' }}>
           <div className="resumo-card stat-item vitorias">
             <div className="stat-icon"><Trophy size={22} /></div>
             <div className="stat-info">
               <span className="stat-label">Vitórias</span>
               <span className="stat-value">{resumo.vitorias}</span>
+            </div>
+          </div>
+          
+          <div className="resumo-card stat-item empates" style={{ borderLeftColor: '#f59e0b' }}>
+            <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}><Minus size={22} /></div>
+            <div className="stat-info">
+              <span className="stat-label">Empates</span>
+              <span className="stat-value">{resumo.empates}</span>
+            </div>
+          </div>
+
+          <div className="resumo-card stat-item derrotas" style={{ borderLeftColor: '#ef4444' }}>
+            <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><AlertCircle size={22} /></div>
+            <div className="stat-info">
+              <span className="stat-label">Derrotas</span>
+              <span className="stat-value">{resumo.derrotas}</span>
             </div>
           </div>
 

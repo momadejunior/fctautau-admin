@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Users, Plus, Loader2, User, Trash2, Search, ArrowUpRight, Award, Footprints } from 'lucide-react';
+import { Users, Plus, Loader2, User, Trash2, Search, ArrowUpRight, Award, Footprints, Pencil, X } from 'lucide-react';
 import { useNotification } from '../contexts/NotificationContext';
 import './JogadoresDashboard.css';
+
+const POSICOES = [
+  { value: '', label: 'Selecionar posição...' },
+  { value: 'Guarda-Redes', label: 'Guarda-Redes' },
+  { value: 'Defesa Central', label: 'Defesa Central' },
+  { value: 'Defesa Direito', label: 'Defesa Direito' },
+  { value: 'Defesa Esquerdo', label: 'Defesa Esquerdo' },
+  { value: 'Médio Defensivo', label: 'Médio Defensivo' },
+  { value: 'Médio Centro', label: 'Médio Centro' },
+  { value: 'Médio Ofensivo', label: 'Médio Ofensivo' },
+  { value: 'Extremo Direito', label: 'Extremo Direito' },
+  { value: 'Extremo Esquerdo', label: 'Extremo Esquerdo' },
+  { value: 'Avançado', label: 'Avançado' },
+];
 
 const JogadoresDashboard = ({ initialView = 'list' }) => {
   const { showNotification } = useNotification();
@@ -17,6 +31,7 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
     posicao: ''
   });
   const [saving, setSaving] = useState(false);
+  const [editingJogador, setEditingJogador] = useState(null);
 
   useEffect(() => {
     fetchJogadores();
@@ -111,6 +126,27 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
     }
   };
 
+  const handleEditJogador = async (e) => {
+    e.preventDefault();
+    if (!editingJogador) return;
+    try {
+      setSaving(true);
+      const { error } = await supabase.from('jogadores').update({
+        nome: editingJogador.nome,
+        numero: editingJogador.numero ? parseInt(editingJogador.numero) : null,
+        posicao: editingJogador.posicao
+      }).eq('id', editingJogador.id);
+      if (error) throw error;
+      showNotification('Jogador atualizado com sucesso!', 'success');
+      setEditingJogador(null);
+      fetchJogadores();
+    } catch (error) {
+      showNotification('Erro ao atualizar jogador: ' + error.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filteredJogadores = jogadores.filter(j => 
     j.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (j.posicao && j.posicao.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -118,7 +154,7 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
   );
 
   return (
-    <div className="jogadores-dashboard">
+    <>
       <div className="dashboard-title-section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
@@ -208,12 +244,15 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
                 </div>
                 <div className="input-group">
                   <label>Posição</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Avançado" 
-                    value={newJogador.posicao} 
-                    onChange={(e) => setNewJogador({...newJogador, posicao: e.target.value})} 
-                  />
+                  <select
+                    value={newJogador.posicao}
+                    onChange={(e) => setNewJogador({...newJogador, posicao: e.target.value})}
+                    style={{ width: '100%', padding: '0.7rem 1rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-app)', color: newJogador.posicao ? 'var(--text-main)' : 'var(--text-muted)', fontSize: '0.95rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
+                  >
+                    {POSICOES.map(p => (
+                      <option key={p.value} value={p.value} disabled={p.value === ''} hidden={p.value === ''}>{p.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -255,9 +294,14 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
                         <div className="player-avatar-large">
                           {jogador.nome[0].toUpperCase()}
                         </div>
-                        <button onClick={() => handleDeleteJogador(jogador.id)} className="delete-btn-mini">
-                          <Trash2 size={16} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                          <button onClick={() => setEditingJogador({ id: jogador.id, nome: jogador.nome, numero: jogador.numero || '', posicao: jogador.posicao || '' })} className="delete-btn-mini" style={{ color: 'var(--primary)', borderColor: 'var(--primary-light)', background: 'var(--primary-light)' }}>
+                            <Pencil size={14} />
+                          </button>
+                          <button onClick={() => handleDeleteJogador(jogador.id)} className="delete-btn-mini">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                       <div className="player-card-body">
                         <h3 className="player-name-display">{jogador.nome}</h3>
@@ -284,7 +328,64 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
           </section>
         )}
       </div>
-    </div>
+
+    {/* Edit Modal */}
+    {editingJogador && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setEditingJogador(null)}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '480px', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Pencil size={20} color="var(--primary)" /> Editar Jogador
+            </h2>
+            <button onClick={() => setEditingJogador(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.25rem' }}>
+              <X size={22} />
+            </button>
+          </div>
+          <form onSubmit={handleEditJogador}>
+            <div className="input-group" style={{ marginBottom: '1rem' }}>
+              <label>Nome Completo</label>
+              <input
+                type="text"
+                value={editingJogador.nome}
+                onChange={e => setEditingJogador({...editingJogador, nome: e.target.value})}
+                required
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div className="input-group">
+                <label>Número</label>
+                <input
+                  type="number"
+                  value={editingJogador.numero || ''}
+                  onChange={e => setEditingJogador({...editingJogador, numero: e.target.value})}
+                />
+              </div>
+              <div className="input-group">
+                <label>Posição</label>
+                <select
+                  value={editingJogador.posicao || ''}
+                  onChange={e => setEditingJogador({...editingJogador, posicao: e.target.value})}
+                  style={{ width: '100%', padding: '0.7rem 1rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-main)', fontSize: '0.95rem', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }}
+                >
+                  {POSICOES.map(p => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button type="button" onClick={() => setEditingJogador(null)} style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: '600' }}>
+                Cancelar
+              </button>
+              <button type="submit" className="submit-btn" style={{ flex: 2 }} disabled={saving}>
+                {saving ? <><Loader2 className="animate-spin" size={18} /> A guardar...</> : 'Guardar Alterações'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+  </>
   );
 };
 

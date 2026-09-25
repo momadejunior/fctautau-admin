@@ -52,12 +52,9 @@ const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
         <div className="sidebar-brand" style={{ marginBottom: 0 }}>
           <div className="brand-logo">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4ZM16 24C11.5817 24 8 20.4183 8 16C8 11.5817 11.5817 8 16 8C20.4183 8 24 11.5817 24 16C24 20.4183 20.4183 24 16 24Z" fill="currentColor" />
-              <circle cx="16" cy="16" r="4" fill="currentColor" />
-            </svg>
+            <img src="/favicon.svg" alt="Logo FC TAU-TAU" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
           </div>
-          <span className="brand-name">fctautau</span>
+          {!isCollapsed && <span className="brand-name">FC TAU-TAU</span>}
         </div>
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -111,7 +108,11 @@ const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
       <div className="sidebar-section-label">General</div>
       <nav className="sidebar-nav">
         {generalItems.map((item) => (
-          <div key={item.id} className="nav-item" onClick={item.action}>
+          <div 
+            key={item.id} 
+            className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+            onClick={item.action ? item.action : () => setActiveTab(item.id)}
+          >
             <item.icon size={20} />
             <span className="nav-text">{item.label}</span>
           </div>

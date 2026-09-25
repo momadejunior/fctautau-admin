@@ -160,7 +160,7 @@ const Header = ({ onMenuToggle, onNavigate }) => {
             <span className="user-name">{userName}</span>
             <span className="user-email">{userEmail}</span>
           </div>
-          <div className="profile-dropdown-trigger" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => { if(confirm('Deseja terminar sessão?')) signOut(); }}>
+          <div className="profile-dropdown-trigger" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => { if (onNavigate) onNavigate('settings'); }}>
             <ChevronDown size={16} className="text-muted" />
           </div>
         </div>
