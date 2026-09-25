@@ -34,7 +34,7 @@ const JogadoresDashboard = ({ initialView = 'list' }) => {
         .select(`
           *,
           presencas:presenca_jogos(count),
-          golos:golos(count)
+          golos:golos!jogador_id(count)
         `)
         .order('nome', { ascending: true });
 
