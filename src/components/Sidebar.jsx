@@ -1,10 +1,18 @@
-import React from 'react';
-import { LayoutDashboard, Users, Calendar, Settings, LogOut, Award, HelpCircle, ChevronRight, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LayoutDashboard, Users, Calendar, Settings, LogOut, Award, HelpCircle, ChevronRight, ShieldCheck, Image as ImageIcon, ChevronLeft, Menu } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
   const { signOut } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Check window size on mount
+  useEffect(() => {
+    if (window.innerWidth <= 1024) {
+      setIsCollapsed(true);
+    }
+  }, []);
 
   const menuItems = [
     { id: 'golos', icon: LayoutDashboard, label: 'Dashboard' },
@@ -40,15 +48,23 @@ const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
   ];
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="brand-logo">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4ZM16 24C11.5817 24 8 20.4183 8 16C8 11.5817 11.5817 8 16 8C20.4183 8 24 11.5817 24 16C24 20.4183 20.4183 24 16 24Z" fill="currentColor" />
-            <circle cx="16" cy="16" r="4" fill="currentColor" />
-          </svg>
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
+        <div className="sidebar-brand" style={{ marginBottom: 0 }}>
+          <div className="brand-logo">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4ZM16 24C11.5817 24 8 20.4183 8 16C8 11.5817 11.5817 8 16 8C20.4183 8 24 11.5817 24 16C24 20.4183 20.4183 24 16 24Z" fill="currentColor" />
+              <circle cx="16" cy="16" r="4" fill="currentColor" />
+            </svg>
+          </div>
+          <span className="brand-name">fctautau</span>
         </div>
-        <span className="brand-name">fctautau</span>
+        <button 
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="toggle-sidebar-btn"
+        >
+          {isCollapsed ? <Menu size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
 
       <div className="sidebar-section-label">Menu</div>
@@ -75,7 +91,7 @@ const Sidebar = ({ activeTab = 'golos', setActiveTab }) => {
               )}
             </div>
 
-            {item.subItems && activeTab.startsWith(item.id) && (
+            {item.subItems && activeTab.startsWith(item.id) && !isCollapsed && (
               <div className="sub-nav">
                 {item.subItems.map(sub => (
                   <div
